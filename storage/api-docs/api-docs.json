@@ -1,0 +1,922 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Hospital patient management API",
+        "description": "REST API with PHP for hospital patient management, which will allow hospital doctors to search for a patient, create new patients and add diagnoses to patients.",
+        "contact": {
+            "name": "Jorge Ivan Carrillo",
+            "url": "https://www.linkedin.com/in/jorgecarrillog/"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User login",
+                "description": "Authenticates a user and returns an access token.",
+                "operationId": "login",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/api/diagnoses": {
+            "post": {
+                "tags": [
+                    "Diagnoses"
+                ],
+                "summary": "Create a new diagnosis",
+                "description": "Registers a new diagnosis in the system.",
+                "operationId": "createDiagnosis",
+                "requestBody": {
+                    "description": "Diagnosis data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Diagnosis name",
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "description": {
+                                        "description": "Diagnosis description",
+                                        "type": "string",
+                                        "maxLength": 255
+                                    }
+                                },
+                                "type": "object",
+                                "example": {
+                                    "name": "Example Diagnosis",
+                                    "description": "This is an example diagnosis"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Diagnóstico creado correctamente."
+                                        },
+                                        "diagnosis": {
+                                            "$ref": "#/components/schemas/Diagnosis"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "419": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "name": [
+                                                    "The name field is required."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error al crear el diagnóstico."
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/diagnoses/{patient_id}/assign-diagnosis": {
+            "post": {
+                "tags": [
+                    "Diagnoses"
+                ],
+                "summary": "Assign a diagnosis to a patient",
+                "description": "Assigns a diagnosis to a specific patient in the system.",
+                "operationId": "assignDiagnosisToPatient",
+                "parameters": [
+                    {
+                        "name": "patient_id",
+                        "in": "path",
+                        "description": "ID of the patient",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Diagnosis data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "diagnosis_id",
+                                    "diagnosis_date"
+                                ],
+                                "properties": {
+                                    "diagnosis_id": {
+                                        "description": "ID of the diagnosis",
+                                        "type": "integer"
+                                    },
+                                    "observation": {
+                                        "description": "Observation about the diagnosis",
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "diagnosis_date": {
+                                        "description": "Diagnosis date",
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object",
+                                "example": {
+                                    "diagnosis_id": 1,
+                                    "observation": "Observation text",
+                                    "diagnosis_date": "2023-12-31"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Diagnóstico asignado correctamente al paciente."
+                                        },
+                                        "patient": {
+                                            "$ref": "#/components/schemas/Patient"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "419": {
+                        "description": "Validation error or Patient not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "diagnosis_date": [
+                                                    "The diagnosis date field is required."
+                                                ]
+                                            }
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "El paciente no fue encontrado."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error al asignar el diagnóstico al paciente."
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/diagnoses/top-diagnoses-last-six-months": {
+            "get": {
+                "tags": [
+                    "Diagnoses"
+                ],
+                "summary": "Get top diagnoses in the last six months",
+                "description": "Retrieves the top five diagnoses that have been assigned the most in the last six months.",
+                "operationId": "topDiagnosesLastSixMonths",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "top_diagnoses": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Diagnosis"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error al obtener los diagnósticos más asignados."
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/patients": {
+            "get": {
+                "tags": [
+                    "Patients"
+                ],
+                "summary": "Get a list of patients with their diagnoses",
+                "description": "Retrieves a list of patients along with their associated diagnoses.",
+                "operationId": "getPatientsWithDiagnoses",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "patients": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/PatientWithDiagnoses"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error al obtener la lista de pacientes con diagnósticos."
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Patients"
+                ],
+                "summary": "Create a new patient",
+                "description": "Registers a new patient in the system.",
+                "operationId": "createPatient",
+                "requestBody": {
+                    "description": "Patient data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Patient"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Patient"
+                                }
+                            }
+                        }
+                    },
+                    "419": {
+                        "description": "Validation error or Patient already exists",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "El paciente ya está registrado."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error al intentar registrar el paciente, contacte al administrador."
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/patients/search": {
+            "get": {
+                "tags": [
+                    "Patients"
+                ],
+                "summary": "Search for patients by name, last name, or document number",
+                "description": "Searches for patients by their first name, last name, or document number.",
+                "operationId": "searchPatients",
+                "parameters": [
+                    {
+                        "name": "search_query",
+                        "in": "query",
+                        "description": "Search query for patient's name, last name, or document number",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "patients": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Patient"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error al buscar pacientes."
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/patients/{id}": {
+            "put": {
+                "tags": [
+                    "Patients"
+                ],
+                "summary": "Update an existing patient",
+                "description": "Update the information of an existing patient in the system.",
+                "operationId": "updatePatient",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the patient to be updated",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Patient data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Patient"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Patient"
+                                }
+                            }
+                        }
+                    },
+                    "419": {
+                        "description": "Validation error or Patient not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "El paciente no fue encontrado."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error al actualizar la información del paciente."
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Patients"
+                ],
+                "summary": "Delete a patient and associated diagnoses",
+                "description": "Deletes a patient along with their associated diagnoses (if any) from the system.",
+                "operationId": "deletePatient",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the patient to be deleted",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Paciente y sus diagnósticos (si existen) eliminados correctamente."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "419": {
+                        "description": "Patient not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "El paciente no fue encontrado."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error al eliminar el paciente y sus diagnósticos."
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Diagnosis": {
+                "title": "Diagnosis",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier for the diagnosis",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "description": "Diagnostic name",
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "description": {
+                        "description": "Description of the diagnosis",
+                        "type": "string",
+                        "maxLength": 255
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "name": "Diabetes",
+                    "description": "Type 2 diabetes mellitus"
+                }
+            },
+            "DiagnosisPivot": {
+                "title": "Diagnosis Pivot Data",
+                "required": [
+                    "patient_id",
+                    "diagnosis_id",
+                    "observation",
+                    "creation_date"
+                ],
+                "properties": {
+                    "patient_id": {
+                        "description": "ID of the patient",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "diagnosis_id": {
+                        "description": "ID of the diagnosis",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "observation": {
+                        "description": "Observation related to the diagnosis",
+                        "type": "string"
+                    },
+                    "creation_date": {
+                        "description": "Date of creation of the pivot record",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "creation_date": "1990-01-01",
+                    "observation": "Type 2 diabetes mellitus",
+                    "diagnosis_id": 1234,
+                    "patient_id": 456
+                }
+            },
+            "Patient": {
+                "title": "Patient",
+                "required": [
+                    "document",
+                    "first_name",
+                    "last_name",
+                    "birth_date",
+                    "email",
+                    "phone",
+                    "genre"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificator in system",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true
+                    },
+                    "document": {
+                        "description": "Identification document",
+                        "type": "integer",
+                        "format": "int64",
+                        "maxLength": 20,
+                        "uniqueItems": true
+                    },
+                    "first_name": {
+                        "description": "Patient first name",
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "last_name": {
+                        "description": "Patient last name",
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "birth_date": {
+                        "description": "Patient birthday",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "email": {
+                        "description": "Contact email",
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 255,
+                        "uniqueItems": true
+                    },
+                    "phone": {
+                        "description": "Contact phone",
+                        "type": "string",
+                        "maxLength": 20
+                    },
+                    "genre": {
+                        "description": "Patient genre (Male/Female)",
+                        "type": "string",
+                        "enum": [
+                            "Male",
+                            "Female"
+                        ]
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "document": 9223372036854775807,
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "birth_date": "1990-01-01",
+                    "email": "johndoe@example.com",
+                    "phone": 1234567890,
+                    "genre": "Male"
+                }
+            },
+            "PatientWithDiagnoses": {
+                "title": "Patient with Diagnoses including Pivot Data",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Patient"
+                    },
+                    {
+                        "required": [
+                            "diagnoses"
+                        ],
+                        "properties": {
+                            "diagnoses": {
+                                "type": "array",
+                                "items": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/Diagnosis"
+                                        },
+                                        {
+                                            "properties": {
+                                                "pivot": {
+                                                    "$ref": "#/components/schemas/DiagnosisPivot"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "type": "object",
+                        "example": {
+                            "document": 9223372036854775807,
+                            "first_name": "John",
+                            "last_name": "Doe",
+                            "birth_date": "1990-01-01",
+                            "email": "johndoe@example.com",
+                            "phone": 1234567890,
+                            "genre": "Male",
+                            "diagnoses": [
+                                {
+                                    "name": "Diabetes",
+                                    "description": "Type 2 diabetes mellitus",
+                                    "pivot": {
+                                        "creation_date": "1990-01-01",
+                                        "observation": "Type 2 diabetes mellitus"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Bearer Token Authentication",
+                "name": "Authorization",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    }
+}
